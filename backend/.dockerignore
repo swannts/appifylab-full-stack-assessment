@@ -1,0 +1,7 @@
+vendor
+.env
+.git
+.github
+tests
+storage/framework
+storage/logs
