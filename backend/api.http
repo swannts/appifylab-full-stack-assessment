@@ -1,0 +1,130 @@
+@baseUrl = http://127.0.0.1:8000
+@json = application/json
+@postId = replace-with-post-id
+@commentId = replace-with-comment-id
+
+###
+# Health check
+GET {{baseUrl}}/
+
+###
+# Register a user
+POST {{baseUrl}}/api/auth/register
+Content-Type: {{json}}
+
+{
+  "first_name": "John",
+  "last_name": "Doe",
+  "email": "john.doe@example.com",
+  "password": "password123"
+}
+
+###
+# Login
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{json}}
+
+{
+  "email": "john.doe@example.com",
+  "password": "password123"
+}
+
+###
+# Current user profile
+GET {{baseUrl}}/api/auth/profile
+
+###
+# Logout
+POST {{baseUrl}}/api/auth/logout
+
+###
+# Upload image
+POST {{baseUrl}}/api/upload
+Content-Type: multipart/form-data
+
+image: @/absolute/path/to/image.jpg
+
+###
+# Get feed with cursor pagination
+GET {{baseUrl}}/api/posts?per_page=10
+
+###
+# Get next page of feed
+GET {{baseUrl}}/api/posts?per_page=10&cursor=replace-with-next-cursor
+
+###
+# Create a public post
+POST {{baseUrl}}/api/posts
+Content-Type: {{json}}
+
+{
+  "content": "Hello from the API client",
+  "image_url": null,
+  "visibility": true
+}
+
+> {%
+    client.global.set("postId", response.body.post.id);
+%}
+
+###
+# Create a private post
+POST {{baseUrl}}/api/posts
+Content-Type: {{json}}
+
+{
+  "content": "Private note",
+  "image_url": null,
+  "visibility": false
+}
+
+###
+# Create an image-only post
+POST {{baseUrl}}/api/posts
+Content-Type: {{json}}
+
+{
+  "content": "",
+  "image_url": "https://example.com/image.jpg",
+  "visibility": true
+}
+
+###
+# Like or unlike a post
+POST {{baseUrl}}/api/posts/{{postId}}/like
+
+###
+# Get post likes
+GET {{baseUrl}}/api/posts/{{postId}}/likes
+
+###
+# Add a top-level comment
+POST {{baseUrl}}/api/posts/{{postId}}/comments
+Content-Type: {{json}}
+
+{
+  "content": "Nice post!",
+  "parent_id": null
+}
+
+> {%
+    client.global.set("commentId", response.body.comment.id);
+%}
+
+###
+# Add a reply to a comment
+POST {{baseUrl}}/api/posts/{{postId}}/comments
+Content-Type: {{json}}
+
+{
+  "content": "Thanks!",
+  "parent_id": "{{commentId}}"
+}
+
+###
+# Like or unlike a comment or reply
+POST {{baseUrl}}/api/comments/{{commentId}}/like
+
+###
+# Get comment likes
+GET {{baseUrl}}/api/comments/{{commentId}}/likes

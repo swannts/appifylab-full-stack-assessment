@@ -7,7 +7,6 @@ use App\Models\Post;
 use App\Models\Comment;
 use App\Models\PostLike;
 use App\Models\CommentLike;
-use App\Models\RefreshToken;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
@@ -19,10 +18,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Hash passwords
         $passwordHash = Hash::make('Password123!');
 
-        // 1. Create 4 Users
         $alice = User::create([
             'first_name' => 'Alice',
             'last_name' => 'Smith',
@@ -51,8 +48,6 @@ class DatabaseSeeder extends Seeder
             'password_hash' => $passwordHash,
         ]);
 
-        // 2. Create Posts (8 public, 3 private)
-        // Public Posts
         $p1 = Post::create([
             'author_id' => $alice->id,
             'content' => 'Hello world! This is my first text-only public post.',
@@ -100,7 +95,7 @@ class DatabaseSeeder extends Seeder
         $p8 = Post::create([
             'author_id' => $dave->id,
             'content' => 'Final public post from Dave.',
-            'image_url' => 'https://images.unsplash.com/photo-1472214222541-d510753a4907',
+            'image_url' => 'https://images.unsplash.com/photo-1777471369659-e3b23a4899f5',
             'visibility' => true,
         ]);
 
@@ -123,8 +118,6 @@ class DatabaseSeeder extends Seeder
             'visibility' => false,
         ]);
 
-        // 3. Comments & One-Level Replies
-        // Top-Level Comments
         $c1 = Comment::create([
             'post_id' => $p1->id,
             'author_id' => $bob->id,
@@ -137,7 +130,6 @@ class DatabaseSeeder extends Seeder
             'content' => 'Welcome to the platform, Alice!',
         ]);
 
-        // Replies (Parent ID exists)
         $r1 = Comment::create([
             'post_id' => $p1->id,
             'author_id' => $alice->id,
@@ -173,28 +165,44 @@ class DatabaseSeeder extends Seeder
             'user_id' => $dave->id,
         ]);
 
-        // 5. Comment Likes
         CommentLike::create([
             'comment_id' => $c1->id,
             'user_id' => $alice->id,
         ]);
 
         CommentLike::create([
-            'comment_id' => $r1->id, // Like on a reply
+            'comment_id' => $r1->id,
             'user_id' => $bob->id,
         ]);
 
-        // 6. Refresh Tokens (dave has multiple refresh tokens)
-        RefreshToken::create([
-            'user_id' => $dave->id,
-            'token_hash' => 'hashed-token-iphone',
-            'expires_at' => Carbon::now()->addDays(30),
-        ]);
+        // Generate additional posts to reach a total of 30 posts
+        $users = [$alice, $bob, $charlie, $dave];
+        $images = [
+            'https://images.unsplash.com/photo-1506744038136-46273834b3fb',
+            'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05',
+            'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d',
+            'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf',
+            'https://images.unsplash.com/photo-1501854140801-50d01698950b',
+            'https://images.unsplash.com/photo-1469474968028-56623f02e42e',
+            'https://images.unsplash.com/photo-1441974231531-c6227db76b6e',
+        ];
 
-        RefreshToken::create([
-            'user_id' => $dave->id,
-            'token_hash' => 'hashed-token-safari-mac',
-            'expires_at' => Carbon::now()->addDays(14),
-        ]);
+        for ($i = 1; $i <= 19; $i++) {
+            $user = $users[array_rand($users)];
+            $hasImage = (rand(0, 1) === 1);
+            Post::create([
+                'author_id' => $user->id,
+                'content' => "This is automatically seeded post number {$i} with some interesting thoughts and ideas.",
+                'image_url' => $hasImage ? $images[array_rand($images)] : null,
+                'visibility' => (rand(0, 4) > 0), // 80% chance of public visibility
+            ]);
+        }
+
+        Post::all()->each(function ($post) {
+            $post->update([
+                'likes_count' => $post->postLikes()->count(),
+                'comments_count' => $post->comments()->count(),
+            ]);
+        });
     }
 }
