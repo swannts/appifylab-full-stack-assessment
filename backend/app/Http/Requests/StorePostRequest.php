@@ -11,31 +11,20 @@ class StorePostRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'content' => is_string($this->input('content')) ? trim($this->input('content')) : $this->input('content'),
+            'image_url' => is_string($this->input('image_url')) ? trim($this->input('image_url')) : $this->input('image_url'),
+        ]);
+    }
+
     public function rules(): array
     {
         return [
-            'content' => 'nullable|string',
-            'image_url' => 'nullable|url',
+            'content' => 'nullable|string|required_without:image_url',
+            'image_url' => 'nullable|url|required_without:content',
             'visibility' => 'required|boolean',
         ];
-    }
-
-    public function withValidator($validator)
-    {
-        $validator->after(function ($validator) {
-            $contentInput = $this->input('content');
-            $imageUrlInput = $this->input('image_url');
-            $content = is_string($contentInput) ? trim($contentInput) : '';
-            $imageUrl = is_string($imageUrlInput) ? trim($imageUrlInput) : '';
-
-            if ($content === '' && $imageUrl === '') {
-                $validator->errors()->add('content', 'A post must have either text content or an image.');
-            }
-        });
-    }
-
-    public function toDto(): \App\DTOs\StorePostDTO
-    {
-        return \App\DTOs\StorePostDTO::fromRequest($this->validated());
     }
 }

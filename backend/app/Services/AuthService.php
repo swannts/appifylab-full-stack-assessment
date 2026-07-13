@@ -3,9 +3,7 @@
 namespace App\Services;
 
 use App\Models\User;
-use App\Models\RefreshToken;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class AuthService
 {
@@ -32,43 +30,13 @@ class AuthService
         return $this->generateUserTokensResponse($user);
     }
 
-    public function refreshTokenService(string $refreshTokenString): ?string
-    {
-        $tokenHash = hash('sha256', $refreshTokenString);
-        $refreshToken = RefreshToken::where('token_hash', $tokenHash)
-            ->where('expires_at', '>', now())
-            ->whereNull('revoked_at')
-            ->first();
-
-        if (!$refreshToken) {
-            return null;
-        }
-
-        return JwtService::generateToken(['user_id' => $refreshToken->user_id], 3600);
-    }
-
-    public function logoutService(string $refreshTokenString): bool
-    {
-        $tokenHash = hash('sha256', $refreshTokenString);
-        return RefreshToken::where('token_hash', $tokenHash)
-            ->whereNull('revoked_at')
-            ->update(['revoked_at' => now()]) > 0;
-    }
-
     private function generateUserTokensResponse(User $user): array
     {
-        $accessToken = JwtService::generateToken(['user_id' => $user->id], 3600);
-        $refreshTokenString = Str::random(64);
-
-        RefreshToken::create([
-            'user_id' => $user->id,
-            'token_hash' => hash('sha256', $refreshTokenString),
-            'expires_at' => now()->addDays(30),
-        ]);
+        // 1 day = 86400 seconds
+        $accessToken = JwtService::generateToken(['user_id' => $user->id], 86400);
 
         return [
             'access_token' => $accessToken,
-            'refresh_token' => $refreshTokenString,
             'user' => [
                 'id' => $user->id,
                 'first_name' => $user->first_name,

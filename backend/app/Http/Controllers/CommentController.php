@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCommentRequest;
+use App\Http\Resources\ApiResponseResource;
+use App\Http\Resources\CommentResource;
 use App\Services\CommentService;
 use Illuminate\Http\Request;
 
@@ -20,14 +22,17 @@ class CommentController extends Controller
         $comment = $this->commentService->createCommentService(
             auth()->user(),
             $postId,
-            $request->toDto()
+            $request->validated()
         );
 
-        return response()->json([
-            'status' => 'success',
-            'message' => $request->has('parent_id') ? 'Reply added successfully' : 'Comment added successfully',
-            'comment' => $comment
-        ], 201);
+        return response()->json(
+            new ApiResponseResource([
+                'status' => 'success',
+                'message' => $request->has('parent_id') ? 'Reply added successfully' : 'Comment added successfully',
+                'comment' => new CommentResource($comment),
+            ]),
+            201
+        );
     }
 
     public function toggleLike(Request $request, string $id)
@@ -35,25 +40,32 @@ class CommentController extends Controller
         $result = $this->commentService->toggleLikeService(auth()->user(), $id);
 
         if (!$result) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Comment not found'
-            ], 404);
+            return response()->json(
+                new ApiResponseResource([
+                    'status' => 'error',
+                    'message' => 'Comment not found',
+                ]),
+                404
+            );
         }
 
-        return response()->json([
-            'status' => 'success',
-            ...$result
-        ]);
+        return response()->json(
+            new ApiResponseResource([
+                'status' => 'success',
+                ...$result,
+            ])
+        );
     }
 
     public function likes(Request $request, string $id)
     {
         $result = $this->commentService->getLikesListService($id);
 
-        return response()->json([
-            'status' => 'success',
-            'likes' => $result
-        ]);
+        return response()->json(
+            new ApiResponseResource([
+                'status' => 'success',
+                'likes' => $result,
+            ])
+        );
     }
 }

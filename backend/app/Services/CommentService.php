@@ -11,22 +11,22 @@ use Illuminate\Support\Facades\DB;
 
 class CommentService
 {
-    public function createCommentService(User $user, string $postId, \App\DTOs\StoreCommentDTO $dto): Comment
+    public function createCommentService(User $user, string $postId, array $data): Comment
     {
-        return DB::transaction(function () use ($user, $postId, $dto) {
+        return DB::transaction(function () use ($user, $postId, $data) {
             $comment = Comment::create([
                 'post_id' => $postId,
                 'author_id' => $user->id,
-                'parent_id' => $dto->parent_id ?? null,
-                'content' => trim($dto->content),
+                'parent_id' => $data['parent_id'] ?? null,
+                'content' => trim($data['content']),
             ]);
 
             Post::whereKey($postId)->increment('comments_count');
 
             $comment->load('author:id,first_name,last_name');
-            $comment->likes_count = 0;
+            $comment->comment_likes_count = 0;
+            $comment->viewer_like_count = 0;
             $comment->liked = false;
-            $comment->liked_by_users = [];
             $comment->replies = [];
 
             return $comment;

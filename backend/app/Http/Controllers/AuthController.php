@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\LoginRequest;
-use App\Http\Requests\RefreshTokenRequest;
 use App\Services\AuthService;
+use App\Services\JwtService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cookie;
+use Symfony\Component\HttpFoundation\Cookie as SymfonyCookie;
 
 class AuthController extends Controller
 {
@@ -20,12 +22,14 @@ class AuthController extends Controller
     public function register(RegisterRequest $request)
     {
         $response = $this->authService->registerService($request->validated());
+        $token = $response['access_token'];
+        unset($response['access_token']);
 
         return response()->json([
             'status' => 'success',
             'message' => 'User registered successfully',
             ...$response
-        ], 201);
+        ], 201)->withCookie($this->makeAuthCookie($token));
     }
 
     public function login(LoginRequest $request)
@@ -39,38 +43,22 @@ class AuthController extends Controller
             ], 401);
         }
 
+        $token = $response['access_token'];
+        unset($response['access_token']);
+
         return response()->json([
             'status' => 'success',
             'message' => 'Logged in successfully',
             ...$response
-        ], 200);
+        ], 200)->withCookie($this->makeAuthCookie($token));
     }
 
-    public function refresh(RefreshTokenRequest $request)
+    public function logout(Request $request)
     {
-        $accessToken = $this->authService->refreshTokenService($request->validated()['refresh_token']);
-
-        if (!$accessToken) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid or expired refresh token'
-            ], 401);
-        }
-
-        return response()->json([
-            'status' => 'success',
-            'access_token' => $accessToken,
-        ], 200);
-    }
-
-    public function logout(RefreshTokenRequest $request)
-    {
-        $this->authService->logoutService($request->validated()['refresh_token']);
-
         return response()->json([
             'status' => 'success',
             'message' => 'Logged out successfully'
-        ], 200);
+        ], 200)->withCookie(Cookie::forget(JwtService::COOKIE_NAME, '/', config('session.domain')));
     }
 
     public function profile(Request $request)
@@ -85,5 +73,20 @@ class AuthController extends Controller
                 'email' => $user->email,
             ]
         ], 200);
+    }
+
+    private function makeAuthCookie(string $token): SymfonyCookie
+    {
+        return cookie(
+            JwtService::COOKIE_NAME,
+            $token,
+            60 * 24,
+            '/',
+            config('session.domain'),
+            (bool) config('session.secure'),
+            true,
+            false,
+            config('session.same_site', 'lax')
+        );
     }
 }

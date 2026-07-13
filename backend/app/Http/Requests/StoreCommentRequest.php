@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 use App\Models\Comment;
+use Illuminate\Foundation\Http\FormRequest;
 
 class StoreCommentRequest extends FormRequest
 {
@@ -12,10 +12,18 @@ class StoreCommentRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'content' => is_string($this->input('content')) ? trim($this->input('content')) : $this->input('content'),
+            'parent_id' => is_string($this->input('parent_id')) ? trim($this->input('parent_id')) : $this->input('parent_id'),
+        ]);
+    }
+
     public function rules(): array
     {
         return [
-            'content' => 'required|string',
+            'content' => 'required|string|min:1',
             'parent_id' => 'nullable|string|exists:comments,id',
         ];
     }
@@ -38,10 +46,5 @@ class StoreCommentRequest extends FormRequest
                 }
             }
         });
-    }
-
-    public function toDto(): \App\DTOs\StoreCommentDTO
-    {
-        return \App\DTOs\StoreCommentDTO::fromRequest($this->validated());
     }
 }

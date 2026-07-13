@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\DTOs\StorePostDTO;
 use App\Models\Post;
 use App\Models\PostLike;
 use App\Models\User;
@@ -16,17 +15,34 @@ class PostService
     {
         return Post::with([
                 'author:id,first_name,last_name,email',
-                'postLikes.user:id,first_name,last_name',
-                'comments' => function ($query) {
-                    $query->whereNull('parent_id')->orderBy('created_at', 'desc');
+                'comments' => function ($query) use ($user) {
+                    $query->whereNull('parent_id')
+                        ->orderBy('created_at', 'desc')
+                        ->with('author:id,first_name,last_name')
+                        ->withCount('commentLikes')
+                        ->withCount([
+                            'commentLikes as viewer_like_count' => function ($likeQuery) use ($user) {
+                                $likeQuery->where('user_id', $user->id);
+                            },
+                        ])
+                        ->with([
+                            'replies' => function ($replyQuery) use ($user) {
+                                $replyQuery->orderBy('created_at', 'asc')
+                                    ->with('author:id,first_name,last_name')
+                                    ->withCount('commentLikes')
+                                    ->withCount([
+                                        'commentLikes as viewer_like_count' => function ($likeQuery) use ($user) {
+                                            $likeQuery->where('user_id', $user->id);
+                                        },
+                                    ]);
+                            },
+                        ]);
                 },
-                'comments.author:id,first_name,last_name',
-                'comments.commentLikes.user:id,first_name,last_name',
-                'comments.replies' => function ($query) {
-                    $query->orderBy('created_at', 'asc');
+            ])
+            ->withCount([
+                'postLikes as viewer_like_count' => function ($likeQuery) use ($user) {
+                    $likeQuery->where('user_id', $user->id);
                 },
-                'comments.replies.author:id,first_name,last_name',
-                'comments.replies.commentLikes.user:id,first_name,last_name',
             ])
             ->where(function ($query) use ($user) {
                 $query->where('visibility', true)
@@ -40,18 +56,19 @@ class PostService
             ->cursorPaginate($perPage, ['*'], 'cursor', $cursor);
     }
 
-    public function createPostService(User $user, StorePostDTO $dto): Post
+    public function createPostService(User $user, array $data): Post
     {
         $post = Post::create([
             'author_id' => $user->id,
-            'content' => $dto->content !== null ? trim($dto->content) : null,
-            'image_url' => $dto->image_url !== null ? trim($dto->image_url) : null,
-            'visibility' => $dto->visibility,
+            'content' => isset($data['content']) && is_string($data['content']) ? trim($data['content']) : null,
+            'image_url' => isset($data['image_url']) && is_string($data['image_url']) ? trim($data['image_url']) : null,
+            'visibility' => (bool) $data['visibility'],
             'likes_count' => 0,
             'comments_count' => 0,
         ]);
 
         $post->load('author:id,first_name,last_name,email');
+        $post->viewer_like_count = 0;
 
         return $post;
     }

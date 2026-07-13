@@ -15,15 +15,14 @@ class AuthenticateJwt
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $authHeader = $request->header('Authorization');
-        if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
+        $token = JwtService::extractTokenFromRequest($request);
+        if (!$token) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Unauthorized: Missing or invalid token format.'
+                'message' => 'Unauthorized: Missing or invalid token.'
             ], 401);
         }
 
-        $token = substr($authHeader, 7);
         $payload = JwtService::verifyToken($token);
 
         if (!$payload || !isset($payload['user_id'])) {

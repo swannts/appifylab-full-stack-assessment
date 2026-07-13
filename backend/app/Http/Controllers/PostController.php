@@ -43,7 +43,7 @@ class PostController extends Controller
     {
         $post = $this->postService->createPostService(
             auth()->user(),
-            $request->toDto()
+            $request->validated()
         );
 
         return response()->json(

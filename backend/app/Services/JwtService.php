@@ -2,8 +2,12 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Request;
+
 class JwtService
 {
+    public const COOKIE_NAME = 'auth_token';
+
     private static function getSecretKey(): string
     {
         return config('app.key') ?: 'fallback-secret-key-1234567890abcdef';
@@ -65,5 +69,10 @@ class JwtService
         }
 
         return $payload;
+    }
+
+    public static function extractTokenFromRequest(Request $request): ?string
+    {
+        return $request->bearerToken() ?: $request->cookie(self::COOKIE_NAME);
     }
 }

@@ -17,11 +17,10 @@ Route::get('/', function () {
 // Authentication routes
 Route::post('/api/auth/register', [AuthController::class, 'register']);
 Route::post('/api/auth/login', [AuthController::class, 'login']);
-Route::post('/api/auth/refresh', [AuthController::class, 'refresh']);
-Route::post('/api/auth/logout', [AuthController::class, 'logout']);
 
 // Protected routes
 Route::middleware([AuthenticateJwt::class])->group(function () {
+    Route::post('/api/auth/logout', [AuthController::class, 'logout']);
     Route::get('/api/auth/profile', [AuthController::class, 'profile']);
     
     // Uploads
