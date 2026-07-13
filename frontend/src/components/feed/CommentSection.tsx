@@ -172,7 +172,7 @@ export default function CommentSection({ postId, comments, onCommentCreated }: C
                       {comment.likes_count > 0 && (
                         <button 
                           onClick={() => {
-                            setActiveLikes(comment.liked_by_users);
+                            setActiveLikes(comment.liked_by_users || []);
                             setLikesTitle('Comment Liked by');
                           }}
                           className="bg-transparent border-0 p-0 text-emerald-600 font-bold hover:underline"
@@ -237,7 +237,7 @@ export default function CommentSection({ postId, comments, onCommentCreated }: C
                           {reply.likes_count > 0 && (
                             <button 
                               onClick={() => {
-                                setActiveLikes(reply.liked_by_users);
+                                setActiveLikes(reply.liked_by_users || []);
                                 setLikesTitle('Reply Liked by');
                               }}
                               className="bg-transparent border-0 p-0 text-emerald-600 font-bold hover:underline"

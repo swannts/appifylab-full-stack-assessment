@@ -1,11 +1,11 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@/types';
-import { getAccessToken, getRefreshToken, getUser, setAuthData, clearAuthData, revokeRefreshToken } from '@/lib/api';
+import { apiLogout, apiRequest } from '@/lib/api';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  loginAction: (accessToken: string, refreshToken: string, user: User) => void;
+  loginAction: (user: User) => void;
   logoutAction: () => Promise<void>;
 }
 
@@ -16,31 +16,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Perform initial state check from localStorage
-    const token = getAccessToken();
-    const storedUser = getUser();
-    if (token && storedUser) {
-      setUser(storedUser);
-    }
-    setLoading(false);
+    let mounted = true;
+
+    const bootstrapAuth = async () => {
+      try {
+        const response = await apiRequest('/api/auth/profile', {
+          skipUnauthorizedRedirect: true,
+        });
+
+        if (mounted) {
+          setUser(response.user || null);
+        }
+      } catch {
+        if (mounted) {
+          setUser(null);
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    bootstrapAuth();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const loginAction = (accessToken: string, refreshToken: string, user: User) => {
-    setAuthData(accessToken, refreshToken, user);
+  const loginAction = (user: User) => {
     setUser(user);
   };
 
   const logoutAction = async () => {
-    const refreshToken = getRefreshToken();
-
     try {
-      if (refreshToken) {
-        await revokeRefreshToken(refreshToken);
-      }
+      await apiLogout();
     } catch (error) {
-      console.error('Failed to revoke refresh token during logout', error);
+      console.error('Failed during logout', error);
     } finally {
-      clearAuthData();
       setUser(null);
     }
   };

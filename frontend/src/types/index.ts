@@ -20,7 +20,7 @@ export interface Reply {
   updated_at: string;
   likes_count: number;
   liked: boolean;
-  liked_by_users: LikeUser[];
+  liked_by_users?: LikeUser[];
   author: {
     id: string;
     first_name: string;
@@ -38,7 +38,7 @@ export interface Comment {
   updated_at: string;
   likes_count: number;
   liked: boolean;
-  liked_by_users: LikeUser[];
+  liked_by_users?: LikeUser[];
   author: {
     id: string;
     first_name: string;
@@ -58,7 +58,7 @@ export interface Post {
   likes_count: number;
   comments_count: number;
   liked: boolean;
-  liked_by_users: LikeUser[];
+  liked_by_users?: LikeUser[];
   author: {
     id: string;
     first_name: string;

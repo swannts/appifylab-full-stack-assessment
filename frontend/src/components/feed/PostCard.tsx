@@ -48,7 +48,7 @@ export default function PostCard({ post, onPostUpdated }: PostCardProps) {
         ...prev,
         liked: data.liked,
         likes_count: data.likes_count,
-        liked_by_users: data.liked_by_users,
+        liked_by_users: data.liked_by_users || prev.liked_by_users,
       }));
       onPostUpdated();
     } catch (err) {
@@ -148,18 +148,8 @@ export default function PostCard({ post, onPostUpdated }: PostCardProps) {
         <div className="_comment_reply_num">
           <ul className="_comment_reply_list">
             <li>
-              <button type="button" onClick={handleLikeToggle} disabled={liking} className="border-0 bg-transparent p-0">
-                <span>{liking ? 'Like...' : currentPost.liked ? 'Liked' : 'Like'}</span>
-              </button>
-            </li>
-            <li>
               <button type="button" onClick={() => setShowComments((current) => !current)} className="border-0 bg-transparent p-0">
                 <span>Reply</span>
-              </button>
-            </li>
-            <li>
-              <button type="button" className="border-0 bg-transparent p-0" onClick={() => setShowComments((current) => !current)}>
-                <span>Comment</span>
               </button>
             </li>
             <li>
@@ -182,7 +172,7 @@ export default function PostCard({ post, onPostUpdated }: PostCardProps) {
       <LikesModal
         isOpen={showLikesModal}
         onClose={() => setShowLikesModal(false)}
-        likes={currentPost.liked_by_users}
+        likes={currentPost.liked_by_users || []}
         title="Post Liked by"
       />
     </div>

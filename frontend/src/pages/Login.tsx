@@ -38,7 +38,7 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      loginAction(data.access_token, data.refresh_token, data.user);
+      loginAction(data.user);
       navigate('/feed');
     } catch (err: any) {
       setError(err.message || 'Login failed. Please check your credentials.');
@@ -85,6 +85,32 @@ export default function LoginPage() {
                 
                 <div className="_social_login_content_bottom_txt _mar_b40">
                   <span>Or</span>
+                </div>
+
+                {/* Seeded Accounts Selector for Testing */}
+                <div className="card mb-4 p-3" style={{ borderRadius: '12px', border: '1px solid #10b981', backgroundColor: '#f0fdf4' }}>
+                  <h6 className="text-success font-bold mb-2" style={{ fontSize: '12.5px', margin: 0 }}>Testing Accounts (Click to Fill)</h6>
+                  <div className="d-flex flex-wrap gap-2 mt-2">
+                    {[
+                      { name: 'Alice', email: 'alice@example.com' },
+                      { name: 'Bob', email: 'bob@example.com' },
+                      { name: 'Charlie', email: 'charlie@example.com' },
+                      { name: 'Dave', email: 'dave@example.com' }
+                    ].map(acc => (
+                      <button
+                        key={acc.email}
+                        type="button"
+                        className="btn btn-sm btn-outline-success text-xs font-semibold py-1 px-2"
+                        onClick={() => {
+                          setEmail(acc.email);
+                          setPassword('Password123!');
+                        }}
+                        style={{ fontSize: '11px', borderRadius: '6px' }}
+                      >
+                        {acc.name}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {error && (

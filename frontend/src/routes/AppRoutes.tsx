@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import LoginPage from '@/pages/Login';
 import RegisterPage from '@/pages/Register';
 import FeedPage from '@/pages/Feed';
+import ProtectedRoute from '@/routes/ProtectedRoute';
 
 function RootRoute() {
   const { user, loading } = useAuth();
@@ -30,7 +31,14 @@ export default function AppRoutes() {
         <Route path="/" element={<RootRoute />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/feed" element={<FeedPage />} />
+        <Route
+          path="/feed"
+          element={
+            <ProtectedRoute>
+              <FeedPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

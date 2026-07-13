@@ -1,10 +1,21 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function Navbar() {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-  const [showNotifyDrop, setShowNotifyDrop] = useState(false);
+  const { logoutAction, user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    await logoutAction();
+    navigate('/login');
+  };
+
+  const displayName = user ? `${user.first_name} ${user.last_name}` : 'Dylan Field';
 
   return (
     <>
@@ -45,32 +56,16 @@ export default function Navbar() {
                   </svg>
                 </a>
               </li>
-              <li className="nav-item nav-link cursor-pointer position-relative _header_nav_item" onClick={() => setShowNotifyDrop(!showNotifyDrop)}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="22" fill="none" viewBox="0 0 20 22">
-                  <path fill="#000" fillOpacity=".6" fillRule="evenodd" d="M7.547 19.55c.533.59 1.218.915 1.93.915.714 0 1.403-.324 1.938-.916a.777.777 0 011.09-.056c.318.284.344.77.058 1.084-.832.917-1.927 1.423-3.086 1.423h-.002c-1.155-.001-2.248-.506-3.077-1.424a.762.762 0 01.057-1.083.774.774 0 011.092.057zM9.527 0c4.58 0 7.657 3.543 7.657 6.85 0 1.702.436 2.424.899 3.19.457.754.976 1.612.976 3.233-.36 4.14-4.713 4.478-9.531 4.478-4.818 0-9.172-.337-9.528-4.413-.003-1.686.515-2.544.973-3.299l.161-.27c.398-.679.737-1.417.737-2.918C1.871 3.543 4.948 0 9.528 0zm0 1.535c-3.6 0-6.11 2.802-6.11 5.316 0 2.127-.595 3.11-1.12 3.978-.422.697-.755 1.247-.755 2.444.173 1.93 1.455 2.944 7.986 2.944 6.494 0 7.817-1.06 7.988-3.01-.003-1.13-.336-1.681-.757-2.378-.526-.868-1.12-1.851-1.12-3.978 0-2.514-2.51-5.316-6.111-5.316z" clipRule="evenodd" />
-                </svg>
-                <span className="_counting">6</span>
-                {showNotifyDrop && (
-                  <div className="_notification_dropdown show" style={{ display: 'block', position: 'absolute', top: '100%', right: 0, zIndex: 1000 }}>
-                    <div className="_notifications_content">
-                      <h4 className="_notifications_content_title">Notifications</h4>
-                    </div>
-                    <div className="_notifications_drop_box">
-                      <div className="_notifications_all" style={{ maxHeight: '250px', overflowY: 'auto' }}>
-                        <div className="_notification_box d-flex gap-2 p-2">
-                          <img src="/assets/images/friend-req.png" alt="" className="_notify_img" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
-                          <div className="_notification_txt">
-                            <p className="_notification_para" style={{ fontSize: '11px', margin: 0 }}><strong>Steve Jobs</strong> posted a link.</p>
-                            <span style={{ fontSize: '9px', color: '#999' }}>42 minutes ago</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+              <li className="nav-item _header_nav_item cursor-pointer">
+                <span className="nav-link _header_nav_link _header_notify_btn position-relative">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="22" fill="none" viewBox="0 0 20 22">
+                    <path fill="#000" fillOpacity=".6" fillRule="evenodd" d="M7.547 19.55c.533.59 1.218.915 1.93.915.714 0 1.403-.324 1.938-.916a.777.777 0 011.09-.056c.318.284.344.77.058 1.084-.832.917-1.927 1.423-3.086 1.423h-.002c-1.155-.001-2.248-.506-3.077-1.424a.762.762 0 01.057-1.083.774.774 0 011.092.057zM9.527 0c4.58 0 7.657 3.543 7.657 6.85 0 1.702.436 2.424.899 3.19.457.754.976 1.612.976 3.233-.36 4.14-4.713 4.478-9.531 4.478-4.818 0-9.172-.337-9.528-4.413-.003-1.686.515-2.544.973-3.299l.161-.27c.398-.679.737-1.417.737-2.918C1.871 3.543 4.948 0 9.528 0zm0 1.535c-3.6 0-6.11 2.802-6.11 5.316 0 2.127-.595 3.11-1.12 3.978-.422.697-.755 1.247-.755 2.444.173 1.93 1.455 2.944 7.986 2.944 6.494 0 7.817-1.06 7.988-3.01-.003-1.13-.336-1.681-.757-2.378-.526-.868-1.12-1.851-1.12-3.978 0-2.514-2.51-5.316-6.111-5.316z" clipRule="evenodd" />
+                  </svg>
+                  <span className="_counting">6</span>
+                </span>
               </li>
               <li className="nav-item _header_nav_item">
-                <a className="nav-link _header_nav_link" href="/feed">
+                <a href="#" className="nav-link _header_nav_link">
                   <svg xmlns="http://www.w3.org/2000/svg" width="23" height="22" fill="none" viewBox="0 0 23 22">
                     <path fill="#000" fillOpacity=".6" fillRule="evenodd" d="M11.43 0c2.96 0 5.743 1.143 7.833 3.22 4.32 4.29 4.32 11.271 0 15.562C17.145 20.886 14.293 22 11.405 22c-1.575 0-3.16-.33-4.643-1.012-.437-.174-.847-.338-1.14-.338-.338.002-.793.158-1.232.308-.9.307-2.022.69-2.852-.131-.826-.822-.445-1.932-.138-2.826.152-.44.307-.895.307-1.239 0-.282-.137-.642-.347-1.161C-.57 11.46.322 6.47 3.596 3.22A11.04 11.04 0 0111.43 0zm0 1.535A9.5 9.5 0 004.69 4.307a9.463 9.463 0 00-1.91 10.686c.241.592.474 1.17.474 1.77 0 .598-.207 1.201-.39 1.733-.15.439-.378 1.1-.231 1.245.143.147.813-.085 1.255-.235.53-.18 1.133-.387 1.73-.391.597 0 1.161.225 1.758.463 3.655 1.679 7.98.915 10.796-1.881 3.716-3.693 3.716-9.7 0-13.391a9.5 9.5 0 00-6.74-2.77zm4.068 8.867c.57 0 1.03.458 1.03 1.024 0 .566-.46 1.023-1.03 1.023a1.023 1.023 0 11-.01-2.047h.01zm-4.131 0c.568 0 1.03.458 1.03 1.024 0 .566-.462 1.023-1.03 1.023a1.03 1.03 0 01-1.035-1.024c0-.566.455-1.023 1.025-1.023h.01zm-4.132 0c.568 0 1.03.458 1.03 1.024 0 .566-.462 1.023-1.03 1.023a1.022 1.022 0 11-.01-2.047h.01z" clipRule="evenodd" />
                   </svg>
@@ -82,21 +77,21 @@ export default function Navbar() {
                 <img src="/assets/images/profile.png" alt="Image" className="_nav_profile_img" />
               </div>
               <div className="_header_nav_dropdown">
-                <p className="_header_nav_para" style={{ margin: 0 }}>Dylan Field</p>
+                <p className="_header_nav_para" style={{ margin: 0 }}>{displayName}</p>
               </div>
               {showProfileDropdown && (
                 <div className="_nav_profile_dropdown show" style={{ display: 'block', position: 'absolute', top: '100%', right: 0, zIndex: 1000, width: '220px' }}>
                   <div className="_nav_profile_dropdown_info d-flex gap-2 p-3">
                     <img src="/assets/images/profile.png" alt="" style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
                     <div>
-                      <h4 className="_nav_dropdown_title" style={{ fontSize: '13px', margin: 0 }}>Dylan Field</h4>
+                      <h4 className="_nav_dropdown_title" style={{ fontSize: '13px', margin: 0 }}>{displayName}</h4>
                       <a href="#0" style={{ fontSize: '11px', color: '#10b981' }}>View Profile</a>
                     </div>
                   </div>
                   <hr style={{ margin: 0 }} />
                   <ul className="_nav_dropdown_list list-unstyled p-2 mb-0">
                     <li><a href="#0" className="_nav_dropdown_link p-2 d-block text-decoration-none text-dark" style={{ fontSize: '12px' }}>Settings</a></li>
-                    <li><a href="/login" className="_nav_dropdown_link p-2 d-block text-decoration-none text-danger" style={{ fontSize: '12px' }}>Log Out</a></li>
+                    <li><a href="#0" onClick={handleLogout} className="_nav_dropdown_link p-2 d-block text-decoration-none text-danger" style={{ fontSize: '12px' }}>Log Out</a></li>
                   </ul>
                 </div>
               )}

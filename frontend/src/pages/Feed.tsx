@@ -1,6 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import { apiRequest } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
+import { Post } from '@/types';
 import Navbar from '@/components/feed/Navbar';
 import LeftSidebar from '@/components/feed/LeftSidebar';
 import PostCreator from '@/components/feed/PostCreator';
@@ -8,72 +11,165 @@ import TimelinePost from '@/components/feed/TimelinePost';
 import RightSidebar from '@/components/feed/RightSidebar';
 
 export default function FeedPage() {
+  const { user } = useAuth();
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+
+  const fetchPosts = async (
+    cursor: string | null = null,
+    options: { replace?: boolean; refresh?: boolean } = {}
+  ) => {
+    const { replace = false, refresh = false } = options;
+
+    if (refresh) {
+      setRefreshing(true);
+    } else if (replace && posts.length === 0) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
+    try {
+      const params = new URLSearchParams({ per_page: '10' });
+      if (cursor) {
+        params.set('cursor', cursor);
+      }
+
+      const data = await apiRequest(`/api/posts?${params.toString()}`);
+      const nextPosts: Post[] = data.posts || [];
+      const pagination = data.pagination || {};
+
+      setPosts((currentPosts) => (replace ? nextPosts : [...currentPosts, ...nextPosts]));
+      setNextCursor(pagination.next_cursor || null);
+      setHasMore(Boolean(pagination.has_more));
+    } catch (err) {
+      console.error('Failed to fetch posts:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+      setLoadingMore(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchPosts(null, { replace: true });
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    if (!user || loading || refreshing || loadingMore) return;
+    if (!hasMore || !nextCursor) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      if (scrollHeight - clientHeight - scrollTop < 300) {
+        fetchPosts(nextCursor);
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    
+    // Check immediately in case page is already near the bottom
+    handleScroll();
+
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+    };
+  }, [hasMore, nextCursor, loading, loadingMore, refreshing, user]);
+
+  const handlePostCreated = (newPost: Post) => {
+    setPosts((currentPosts) => [newPost, ...currentPosts]);
+  };
+
+  const handleRefresh = () => {
+    setPosts([]);
+    setNextCursor(null);
+    setHasMore(true);
+    fetchPosts(null, { replace: true, refresh: true });
+  };
+
+  if (!user) {
+    return null;
+  }
+
   return (
     <>
-      {/*Feed Section Start*/}
       <div className="_layout _layout_main_wrapper">
-        {/*Switching Btn Start*/}
-        <div className="_layout_mode_swithing_btn">
-          <button type="button" className="_layout_swithing_btn_link">
-            <div className="_layout_swithing_btn">
-              <div className="_layout_swithing_btn_round"></div>
-            </div>
-            <div className="_layout_change_btn_ic1">
-              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="16" fill="none" viewBox="0 0 11 16">
-                <path fill="#fff" d="M2.727 14.977l.04-.498-.04.498zm-1.72-.49l.489-.11-.489.11zM3.232 1.212L3.514.8l-.282.413zM9.792 8a6.5 6.5 0 00-6.5-6.5v-1a7.5 7.5 0 017.5 7.5h-1zm-6.5 6.5a6.5 6.5 0 006.5-6.5h1a7.5 7.5 0 01-7.5 7.5v-1zm-.525-.02c.173.013.348.02.525.02v1c-.204 0-.405-.008-.605-.024l.08-.997zm-.261-1.83A6.498 6.498 0 005.792 7h1a7.498 7.498 0 01-3.791 6.52l-.495-.87zM5.792 7a6.493 6.493 0 00-2.841-5.374L3.514.8A7.493 7.493 0 016.792 7h-1zm-3.105 8.476c-.528-.042-.985-.077-1.314-.155-.316-.075-.746-.242-.854-.726l.977-.217c-.028-.124-.145-.09.106-.03.237.056.6.086 1.165.131l-.08.997zm.314-1.956c-.622.354-1.045.596-1.31.792a.967.967 0 00-.204.185c-.01.013.027-.038.009-.12l-.977.218a.836.836 0 01.144-.666c.112-.162.27-.3.433-.42.324-.24.814-.519 1.41-.858L3 13.52zM3.292 1.5a.391.391 0 00.374-.285A.382.382 0 003.514.8l-.563.826A.618.618 0 012.702.95a.609.609 0 01.59-.45v1z" />
-              </svg>
-            </div>
-            <div className="_layout_change_btn_ic2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="4.389" stroke="#fff" transform="rotate(-90 12 12)" />
-                <path stroke="#fff" strokeLinecap="round" d="M3.444 12H1M23 12h-2.444M5.95 5.95L4.222 4.22M19.778 19.779L18.05 18.05M12 3.444V1M12 23v-2.445M18.05 5.95l1.728-1.729M4.222 19.779L5.95 18.05" />
-              </svg>
-            </div>
-          </button>
-        </div>
-        {/*Switching Btn End*/}
-
         <div className="_main_layout">
-          {/* Header Navbar */}
           <Navbar />
 
-          {/* Main Layout Structure */}
           <div className="container _custom_container">
             <div className="_layout_inner_wrap">
               <div className="row">
-                
-                {/* Left Sidebar */}
                 <LeftSidebar />
 
-                {/* Layout Middle */}
                 <div className="col-xl-6 col-lg-6 col-md-12 col-sm-12">
-                  <div className="_layout_middle_wrap">
+                  <div className="_layout_middle_wrap" ref={scrollContainerRef}>
                     <div className="_layout_middle_inner">
-                      
-                      {/* Post Creator & Stories */}
-                      <PostCreator />
+                      <PostCreator onPostCreated={handlePostCreated} />
 
-                      {/* Karim Saif Post 1 */}
-                      <TimelinePost
-                        authorName="Karim Saif"
-                        postTitle="-Healthy Tracking App"
-                        imageSrc="assets/images/timeline_img.png"
-                      />
+                      <div className="d-flex justify-content-between align-items-center mb-3 px-1">
+                        <h4 style={{ fontSize: '13px', fontWeight: 'bold', textTransform: 'uppercase', color: '#888', letterSpacing: '0.05em', margin: 0 }}>
+                          Recent Feed
+                        </h4>
+                        <button
+                          onClick={handleRefresh}
+                          disabled={refreshing}
+                          className="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-1 font-bold text-xs"
+                          style={{ color: '#10b981', cursor: 'pointer' }}
+                        >
+                          {refreshing ? 'Refreshing...' : 'Refresh'}
+                        </button>
+                      </div>
 
-                      {/* Karim Saif Post 2 */}
-                      <TimelinePost
-                        authorName="Karim Saif"
-                        postTitle="-Healthy Tracking App"
-                        imageSrc="assets/images/timeline_img.png"
-                      />
+                      {loading ? (
+                        <div className="text-center py-4">
+                          <div className="spinner-border text-success" role="status">
+                            <span className="visually-hidden">Loading...</span>
+                          </div>
+                        </div>
+                      ) : posts.length === 0 ? (
+                        <div className="bg-white p-4 rounded-3 border text-center my-3">
+                          <p className="text-muted mb-0">No posts in your feed yet. Be the first to share an update!</p>
+                        </div>
+                      ) : (
+                        posts.map((post) => (
+                          <TimelinePost
+                            key={post.id}
+                            post={post}
+                            onPostUpdated={() => {
+                              // Keep local UI responsive; background refresh is handled by pull/scroll actions.
+                            }}
+                          />
+                        ))
+                      )}
 
+                      {hasMore && (
+                        <div className="text-center py-4">
+                          <button
+                            type="button"
+                            onClick={() => fetchPosts(nextCursor, { refresh: false })}
+                            disabled={loadingMore || !nextCursor}
+                            className="btn btn-success px-4"
+                            style={{ borderRadius: '999px', fontWeight: 700 }}
+                          >
+                            {loadingMore ? 'Loading...' : 'Load More'}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                {/* Right Sidebar */}
                 <RightSidebar />
-
               </div>
             </div>
           </div>

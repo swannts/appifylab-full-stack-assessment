@@ -51,7 +51,7 @@ export default function RegisterPage() {
         }),
       });
 
-      loginAction(data.access_token, data.refresh_token, data.user);
+      loginAction(data.user);
       navigate('/feed');
     } catch (err: any) {
       setError(err.message || 'Registration failed. Please try again.');
