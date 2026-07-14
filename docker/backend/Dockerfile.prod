@@ -30,7 +30,10 @@ COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 
 RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache /var/www/html \
-    && chmod -R ug+rw storage bootstrap/cache
+    && chmod -R ug+rw storage bootstrap/cache \
+    # Regenerate bootstrap cache from production-only vendor (no dev deps)
+    && rm -f bootstrap/cache/packages.php bootstrap/cache/services.php \
+    && php artisan package:discover --ansi
 
 EXPOSE 8000
 
