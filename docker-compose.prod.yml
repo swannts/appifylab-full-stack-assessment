@@ -1,4 +1,20 @@
 services:
+  db:
+    image: mysql:8.4
+    restart: always
+    environment:
+      - MYSQL_DATABASE=appifylab_feed
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+      - MYSQL_ROOT_PASSWORD=rootpassword
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-prootpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     build:
       context: ./backend
@@ -15,6 +31,9 @@ services:
       - DB_DATABASE=appifylab_feed
       - DB_USERNAME=user
       - DB_PASSWORD=password
+    depends_on:
+      db:
+        condition: service_healthy
     restart: always
 
   frontend:
@@ -26,3 +45,6 @@ services:
     ports:
       - "80:80"
     restart: always
+
+volumes:
+  mysql_data:
