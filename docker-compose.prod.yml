@@ -41,7 +41,7 @@ services:
       context: ./frontend
       dockerfile: ../docker/frontend/Dockerfile.prod
       args:
-        - VITE_API_URL=http://localhost:8000
+        - VITE_API_URL=http://54.158.189.35:8000
     ports:
       - "80:80"
     restart: always
