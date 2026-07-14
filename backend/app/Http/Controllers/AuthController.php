@@ -7,7 +7,6 @@ use App\Http\Requests\LoginRequest;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
-use Symfony\Component\HttpFoundation\Cookie as SymfonyCookie;
 
 class AuthController extends Controller
 {
@@ -28,7 +27,7 @@ class AuthController extends Controller
             'status' => 'success',
             'message' => 'User registered successfully',
             ...$response
-        ], 201)->withCookie($this->makeAuthCookie($token));
+        ], 201)->withCookie($this->authService->makeAuthCookie($token));
     }
 
     public function login(LoginRequest $request)
@@ -49,7 +48,7 @@ class AuthController extends Controller
             'status' => 'success',
             'message' => 'Logged in successfully',
             ...$response
-        ], 200)->withCookie($this->makeAuthCookie($token));
+        ], 200)->withCookie($this->authService->makeAuthCookie($token));
     }
 
     public function logout(Request $request)
@@ -72,20 +71,5 @@ class AuthController extends Controller
                 'email' => $user->email,
             ]
         ], 200);
-    }
-
-    private function makeAuthCookie(string $token): SymfonyCookie
-    {
-        return cookie(
-            'auth_token',
-            $token,
-            60 * 24,
-            '/',
-            config('session.domain'),
-            (bool) config('session.secure'),
-            true,
-            false,
-            config('session.same_site', 'lax')
-        );
     }
 }

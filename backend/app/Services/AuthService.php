@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Symfony\Component\HttpFoundation\Cookie as SymfonyCookie;
 
 class AuthService
 {
@@ -44,5 +45,20 @@ class AuthService
                 'email' => $user->email,
             ]
         ];
+    }
+
+    public function makeAuthCookie(string $token): SymfonyCookie
+    {
+        return cookie(
+            'auth_token',
+            $token,
+            60 * 24,
+            '/',
+            config('session.domain'),
+            (bool) config('session.secure'),
+            true,
+            false,
+            config('session.same_site', 'lax')
+        );
     }
 }

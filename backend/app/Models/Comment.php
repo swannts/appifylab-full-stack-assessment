@@ -18,6 +18,11 @@ class Comment extends Model
         'author_id',
         'parent_id',
         'content',
+        'likes_count',
+    ];
+
+    protected $casts = [
+        'likes_count' => 'integer',
     ];
 
     public function post()

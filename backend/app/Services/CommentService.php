@@ -19,12 +19,12 @@ class CommentService
                 'author_id' => $user->id,
                 'parent_id' => $data['parent_id'] ?? null,
                 'content' => trim($data['content']),
+                'likes_count' => 0,
             ]);
 
             Post::whereKey($postId)->increment('comments_count');
 
             $comment->load('author:id,first_name,last_name');
-            $comment->comment_likes_count = 0;
             $comment->viewer_like_count = 0;
             $comment->liked = false;
             $comment->replies = [];
@@ -49,15 +49,17 @@ class CommentService
             if ($like) {
                 $like->delete();
                 $liked = false;
+                $comment->decrement('likes_count');
             } else {
                 CommentLike::create([
                     'comment_id' => $comment->id,
                     'user_id' => $user->id
                 ]);
                 $liked = true;
+                $comment->increment('likes_count');
             }
 
-            return $this->buildLikeState($comment->id, $liked);
+            return $this->buildLikeState($comment->id, $liked, (int) $comment->likes_count);
         });
     }
 
@@ -74,13 +76,13 @@ class CommentService
             });
     }
 
-    private function buildLikeState(string $commentId, bool $liked): array
+    private function buildLikeState(string $commentId, bool $liked, int $likesCount): array
     {
         $likesList = $this->getLikesListService($commentId);
 
         return [
             'liked' => $liked,
-            'likes_count' => $likesList->count(),
+            'likes_count' => $likesCount,
             'liked_by_users' => $likesList,
         ];
     }

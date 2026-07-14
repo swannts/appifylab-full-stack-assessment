@@ -19,8 +19,8 @@ class CommentResource extends JsonResource
             'content' => $this->content,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'likes_count' => (int) ($this->comment_likes_count ?? 0),
-            'liked' => (int) ($this->viewer_like_count ?? 0) > 0,
+            'likes_count' => (int) ($this->likes_count ?? 0),
+            'liked' => (bool) ($this->viewer_liked ?? false),
             'author' => [
                 'id' => $this->author?->id,
                 'first_name' => $this->author?->first_name,

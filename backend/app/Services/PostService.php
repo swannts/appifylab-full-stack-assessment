@@ -19,9 +19,8 @@ class PostService
                     $query->whereNull('parent_id')
                         ->orderBy('created_at', 'desc')
                         ->with('author:id,first_name,last_name')
-                        ->withCount('commentLikes')
-                        ->withCount([
-                            'commentLikes as viewer_like_count' => function ($likeQuery) use ($user) {
+                        ->withExists([
+                            'commentLikes as viewer_liked' => function ($likeQuery) use ($user) {
                                 $likeQuery->where('user_id', $user->id);
                             },
                         ])
@@ -29,9 +28,8 @@ class PostService
                             'replies' => function ($replyQuery) use ($user) {
                                 $replyQuery->orderBy('created_at', 'asc')
                                     ->with('author:id,first_name,last_name')
-                                    ->withCount('commentLikes')
-                                    ->withCount([
-                                        'commentLikes as viewer_like_count' => function ($likeQuery) use ($user) {
+                                    ->withExists([
+                                        'commentLikes as viewer_liked' => function ($likeQuery) use ($user) {
                                             $likeQuery->where('user_id', $user->id);
                                         },
                                     ]);
@@ -39,8 +37,8 @@ class PostService
                         ]);
                 },
             ])
-            ->withCount([
-                'postLikes as viewer_like_count' => function ($likeQuery) use ($user) {
+            ->withExists([
+                'postLikes as viewer_liked' => function ($likeQuery) use ($user) {
                     $likeQuery->where('user_id', $user->id);
                 },
             ])
