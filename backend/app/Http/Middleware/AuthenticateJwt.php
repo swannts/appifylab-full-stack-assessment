@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthenticateJwt
 {
@@ -23,14 +24,13 @@ class AuthenticateJwt
         }
 
         try {
-            $user = auth('api')->setToken($token)->authenticate();
+            $user = JWTAuth::setToken($token)->toUser();
             if (!$user) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Unauthorized: User not found.'
                 ], 401);
             }
-            // Make the user available via auth()->user() across all guards
             Auth::setUser($user);
         } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
             return response()->json([
