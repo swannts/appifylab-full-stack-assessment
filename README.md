@@ -4,12 +4,6 @@ A full-stack social feed application built for the Appifylab Full-Stack Engineer
 
 The project converts the provided Login, Register, and Feed HTML/CSS pages into a functional React application backed by a Laravel API and MySQL database. The original design assets and layout structure are retained while the required authentication, posting, reaction, comment, reply, privacy, and pagination features are implemented.
 
-## Submission Links
-
-- **GitHub repository:** https://github.com/swannts/appifylab-full-stack-assessment
-- **Video walkthrough:** Add the YouTube walkthrough URL before submission
-- **Live application:** Add the deployed application URL if available
-
 ## Technology Stack
 
 ### Frontend
@@ -19,7 +13,7 @@ The project converts the provided Login, Register, and Feed HTML/CSS pages into 
 - Vite
 - React Router
 - Zod validation
-- Bootstrap and the provided HTML/CSS design assets
+- The provided HTML/CSS design assets
 
 ### Backend
 
@@ -177,7 +171,7 @@ Important columns:
 - `author_id`
 - `parent_id`
 - `content`
-- timestamps
+- `timestamps`
 
 Important indexes:
 
