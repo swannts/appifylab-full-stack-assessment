@@ -16,6 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->preventRequestForgery(except: [
             'api/*',
         ]);
+        // Exclude auth_token from cookie encryption so the raw JWT
+        // is stored in the cookie and can be validated by AuthenticateJwt middleware.
+        $middleware->encryptCookies(except: ['auth_token']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (\Illuminate\Validation\ValidationException $e, Request $request) {
