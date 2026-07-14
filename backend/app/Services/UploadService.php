@@ -21,7 +21,8 @@ class UploadService
         // Move file to public/uploads
         $file->move($uploadPath, $filename);
 
-        // Generate full asset URL
-        return url('uploads/' . $filename);
+        // Generate full asset URL using configured app.url
+        $baseUrl = rtrim(config('app.url', url('/')), '/');
+        return $baseUrl . '/uploads/' . $filename;
     }
 }
