@@ -1,4 +1,4 @@
-@baseUrl = http://3.218.62.17:8000
+@baseUrl = http://54.158.189.35:8000
 @json = application/json
 @postId = replace-with-post-id
 @commentId = replace-with-comment-id

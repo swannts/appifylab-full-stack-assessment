@@ -153,7 +153,7 @@ Important columns:
 - `visibility`
 - `likes_count`
 - `comments_count`
-- timestamps
+- `timestamps`
 
 Important indexes:
 

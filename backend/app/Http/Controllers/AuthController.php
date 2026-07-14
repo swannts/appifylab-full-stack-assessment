@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\LoginRequest;
 use App\Services\AuthService;
-use App\Services\JwtService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 use Symfony\Component\HttpFoundation\Cookie as SymfonyCookie;
@@ -58,7 +57,7 @@ class AuthController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Logged out successfully'
-        ], 200)->withCookie(Cookie::forget(JwtService::COOKIE_NAME, '/', config('session.domain')));
+        ], 200)->withCookie(Cookie::forget('auth_token', '/', config('session.domain')));
     }
 
     public function profile(Request $request)
@@ -78,7 +77,7 @@ class AuthController extends Controller
     private function makeAuthCookie(string $token): SymfonyCookie
     {
         return cookie(
-            JwtService::COOKIE_NAME,
+            'auth_token',
             $token,
             60 * 24,
             '/',

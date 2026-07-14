@@ -32,8 +32,8 @@ class AuthService
 
     private function generateUserTokensResponse(User $user): array
     {
-        // 1 day = 86400 seconds
-        $accessToken = JwtService::generateToken(['user_id' => $user->id], 86400);
+        // 1 day = 1440 minutes
+        $accessToken = auth('api')->setTTL(1440)->login($user);
 
         return [
             'access_token' => $accessToken,

@@ -4,8 +4,6 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use App\Services\JwtService;
-use App\Models\User;
 use Symfony\Component\HttpFoundation\Response;
 
 class AuthenticateJwt
@@ -15,7 +13,7 @@ class AuthenticateJwt
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $token = JwtService::extractTokenFromRequest($request);
+        $token = $request->bearerToken() ?: $request->cookie('auth_token');
         if (!$token) {
             return response()->json([
                 'status' => 'error',
@@ -23,24 +21,24 @@ class AuthenticateJwt
             ], 401);
         }
 
-        $payload = JwtService::verifyToken($token);
-
-        if (!$payload || !isset($payload['user_id'])) {
+        try {
+            if (!$user = auth('api')->setToken($token)->authenticate()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Unauthorized: User not found.'
+                ], 401);
+            }
+        } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Unauthorized: Token is invalid or expired.'
+                'message' => 'Unauthorized: Token has expired.'
             ], 401);
-        }
-
-        $user = User::find($payload['user_id']);
-        if (!$user) {
+        } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Unauthorized: User not found.'
+                'message' => 'Unauthorized: Token is invalid.'
             ], 401);
         }
-
-        auth()->setUser($user);
 
         return $next($request);
     }
