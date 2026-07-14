@@ -26,6 +26,7 @@ services:
       - APP_DEBUG=false
       - APP_KEY=base64:9160T5gH8x7KFVKSVRdy5TM0A50N/HUfn6CFQNn41hw=
       - APP_URL=http://54.158.189.35:8000
+      - JWT_SECRET=ZEpQY7BqFwOtLVpvmzu69wilYpMVrccd9mhjhlKe9Fs9fkMDSPtThWTvHoj5rKm9
       - DB_CONNECTION=mysql
       - DB_HOST=db
       - DB_PORT=3306
